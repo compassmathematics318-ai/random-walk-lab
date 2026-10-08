@@ -1,0 +1,9 @@
+{
+  "loader": "NewBuilds.loader.js",
+  "data": "NewBuilds.data.br",
+  "framework": "NewBuilds.framework.js.br",
+  "code": "NewBuilds.wasm.br",
+  "companyName": "DefaultCompany",
+  "productName": "1D_prob_sim",
+  "productVersion": "0.1.0"
+}

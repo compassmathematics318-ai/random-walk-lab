@@ -1,0 +1,27 @@
+name: smoke
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r backend/requirements.txt
+      - run: python -m compileall backend scripts
+      - run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('frontend/unity')
+          manifest = json.loads((root / 'build.json').read_text())
+          for key in ('loader', 'data', 'framework', 'code'):
+              path = root / 'Build' / manifest[key]
+              assert path.is_file(), f'Missing {key}: {path}'
+          print('Unity build manifest OK')
+          PY

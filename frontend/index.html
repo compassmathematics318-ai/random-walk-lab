@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#070a12" />
+  <meta name="description" content="Interactive 1D symmetric random-walk simulation built with Unity Web." />
+  <title>Random Walk Lab</title>
+  <link rel="icon" href="/unity/TemplateData/favicon.ico" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Random Walk Lab home">
+      <span class="brand-mark">RW</span>
+      <span>
+        <strong>Random Walk Lab</strong>
+        <small>1D recurrence visualizer</small>
+      </span>
+    </a>
+    <div class="header-actions">
+      <span id="unity-status" class="status-chip" data-state="loading">
+        <span class="status-dot"></span>
+        <span class="status-text">Loading Unity</span>
+      </span>
+      <a class="ghost-button" href="#controls">Controls</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="eyebrow">INTERACTIVE PROBABILITY LAB</div>
+      <h1>Watch recurrence emerge,<br /><span>one random step at a time.</span></h1>
+      <p>
+        Launch a population of independent 1D walkers. Every step is left or right with equal
+        probability. Walkers disappear when they return home; walkers that hit the move limit stay
+        where they finish.
+      </p>
+      <div class="hero-metrics" aria-label="Simulation properties">
+        <div><strong>½</strong><span>P(left)</span></div>
+        <div><strong>½</strong><span>P(right)</span></div>
+        <div><strong>0</strong><span>home position</span></div>
+      </div>
+    </section>
+
+    <section class="lab-shell" aria-label="Random walk simulation">
+      <aside class="control-panel" id="controls">
+        <div class="panel-heading">
+          <div>
+            <span class="section-kicker">EXPERIMENT</span>
+            <h2>Configure the run</h2>
+          </div>
+          <button id="reset-defaults" class="icon-button" type="button" title="Restore defaults" aria-label="Restore defaults">↺</button>
+        </div>
+
+        <form id="experiment-form" novalidate>
+          <label class="field-group" for="agent-count">
+            <span class="field-label">
+              <span>Walking agents</span>
+              <span id="agent-count-output" class="value-pill">100</span>
+            </span>
+            <input id="agent-count" name="agentCount" type="number" min="1" max="2000" step="1" value="100" inputmode="numeric" />
+            <small>More walkers make the empirical return rate smoother, but cost more browser performance.</small>
+          </label>
+
+          <label class="field-group" for="max-steps">
+            <span class="field-label">
+              <span>Maximum steps</span>
+              <span id="max-steps-output" class="value-pill">1000</span>
+            </span>
+            <input id="max-steps" name="maxMoves" type="number" min="1" max="100000" step="1" value="1000" inputmode="numeric" />
+            <small>A walker that has not returned by this limit remains visible at its final position.</small>
+          </label>
+
+          <label class="field-group" for="speed-multiplier">
+            <span class="field-label">
+              <span>Walking speed</span>
+              <span id="speed-output" class="value-pill">1.00×</span>
+            </span>
+            <input id="speed-multiplier" name="speedMultiplier" type="range" min="0.25" max="5" step="0.25" value="1" />
+            <div class="range-labels"><span>0.25×</span><span>5×</span></div>
+          </label>
+
+          <button id="run-button" class="primary-button" type="submit" disabled>
+            <span>Run experiment</span>
+            <span class="button-arrow">→</span>
+          </button>
+          <p id="form-message" class="form-message" role="status"></p>
+        </form>
+
+        <div class="control-note control-note-important">
+          <span class="note-icon">Q</span>
+          <p><strong>Need your mouse back?</strong> Press <kbd>Q</kbd> to pause the simulation and release the cursor. Press <kbd>Q</kbd> again to resume.</p>
+        </div>
+      </aside>
+
+      <div class="simulation-column">
+        <div class="simulation-toolbar">
+          <div>
+            <span class="toolbar-dot"></span>
+            <span>Unity Web simulation</span>
+          </div>
+          <div class="toolbar-actions">
+            <span class="toolbar-quick-hint"><kbd>Q</kbd> pause + free cursor</span>
+            <button id="fullscreen-button" class="toolbar-button" type="button" disabled>Fullscreen</button>
+          </div>
+        </div>
+
+        <div id="unity-frame" class="unity-frame">
+          <canvas id="unity-canvas" tabindex="0" aria-label="Unity 1D random walk simulation"></canvas>
+
+          <div id="sim-focus-hint" class="sim-focus-hint" aria-hidden="true">
+            Click the simulation to take control
+          </div>
+
+          <div class="sim-help-overlay" aria-label="Simulation controls">
+            <div class="sim-help-primary">
+              <span class="sim-help-eyebrow">NEED YOUR MOUSE BACK?</span>
+              <div class="sim-help-q-row">
+                <kbd>Q</kbd>
+                <div>
+                  <strong>Pause + release cursor</strong>
+                  <span>Press Q again to resume</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sim-help-keys" aria-label="Quick control reference">
+              <span><kbd>WASD</kbd> move</span>
+              <span><kbd>Mouse</kbd> look</span>
+              <span><kbd>Scroll</kbd> zoom</span>
+              <span><kbd>R</kbd> reset</span>
+            </div>
+          </div>
+
+          <div id="unity-loading" class="unity-loading">
+            <div class="loader-orbit" aria-hidden="true"><span></span></div>
+            <div class="loading-copy">
+              <strong>Preparing the simulation</strong>
+              <span id="loading-label">Loading Unity runtime…</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div id="progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+
+          <div id="unity-warning" class="unity-warning" aria-live="polite"></div>
+        </div>
+
+        <div class="simulation-caption">
+          <span><b class="cyan-dot"></b> number line</span>
+          <span><b class="gold-dot"></b> HOME</span>
+          <span><b class="magenta-dot"></b> live return statistics</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-grid">
+      <article class="info-card">
+        <span class="section-kicker">WHAT YOU ARE SEEING</span>
+        <h3>A symmetric 1D random walk</h3>
+        <p>
+          Every walker starts at the origin. At each step it independently moves exactly one unit to
+          the left or right with probability 0.5. The experiment records whether each walker returns
+          to the origin before the selected step limit.
+        </p>
+      </article>
+
+      <article class="info-card controls-card">
+        <span class="section-kicker">KEYBOARD + MOUSE</span>
+        <h3>Simulation controls</h3>
+        <div class="key-grid">
+          <div><kbd>W A S D</kbd><span>Move camera</span></div>
+          <div><kbd>Space</kbd><span>Move up</span></div>
+          <div><kbd>Shift</kbd><span>Move down</span></div>
+          <div><kbd>Mouse</kbd><span>Look around</span></div>
+          <div><kbd>Scroll</kbd><span>Zoom</span></div>
+          <div class="key-important"><kbd>Q</kbd><span>Pause + release cursor / resume</span></div>
+          <div><kbd>R</kbd><span>Reset experiment</span></div>
+          <div><kbd>Esc</kbd><span>Exit browser fullscreen</span></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="math-strip">
+      <div>
+        <span class="section-kicker">MODEL</span>
+        <p>X<sub>t+1</sub> = X<sub>t</sub> + ξ<sub>t+1</sub>, &nbsp; ξ ∈ {−1, +1}, &nbsp; P(ξ = ±1) = 1/2</p>
+      </div>
+      <span class="math-tag">Discrete · unbiased · independent steps</span>
+    </section>
+  </main>
+
+  <footer>
+    <span>Random Walk Lab</span>
+    <span>Built with Unity Web + FastAPI</span>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
